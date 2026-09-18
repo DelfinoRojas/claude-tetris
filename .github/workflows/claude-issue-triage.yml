@@ -39,47 +39,66 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: >-
-            --allowedTools "Read,Grep,Glob,Bash(gh issue view:*),Bash(gh label list:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*)"
+            --allowedTools "Read,Grep,Glob,Write,Bash(gh issue view:*),Bash(gh label list:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*)"
           prompt: |
             Eres el triador de issues del repositorio ${{ github.repository }}, un juego de
             Tetris en JavaScript vanilla (`index.html`, `game.js`, `style.css`). Lee `CLAUDE.md`
             antes de analizar: contiene la arquitectura y los invariantes del proyecto.
 
-            Debes triar el issue número $ISSUE_NUMBER. Sigue estos pasos:
+            Debes triar el issue número $ISSUE_NUMBER. Sigue estos pasos EN ORDEN y ejecuta
+            TODOS, incluido el paso 4 (labels) y el paso 6 (comentario) — no des el triaje por
+            terminado hasta haber publicado el comentario.
 
             1. Lee el issue:
                `gh issue view $ISSUE_NUMBER --json number,title,body,labels,author`
             2. Lee las labels válidas: `gh label list --json name,description`
             3. Analiza el código relevante con Read/Grep/Glob (`game.js`, `index.html`,
                `style.css`, `README.md`) para fundamentar el diagnóstico. No modifiques
-               ningún archivo ni hagas commits.
+               ningún archivo del proyecto ni hagas commits (el único archivo que puedes
+               escribir es el `cuerpo.md` temporal del paso 6).
             4. Aplica labels con
                `gh issue edit $ISSUE_NUMBER --add-label "<label>"` (puedes pasar varias
                separadas por coma). Reglas estrictas:
-               - Usa ÚNICAMENTE labels devueltas por `gh label list`. Nunca crees labels nuevas.
-               - Como máximo 3 labels, y solo si encajan con claridad.
+               - Usa ÚNICAMENTE labels devueltas por `gh label list`, con el nombre EXACTO
+                 (mayúsculas/minúsculas incluidas). Nunca crees labels nuevas.
+               - Como máximo 3 labels, y solo si encajan con claridad. Si ninguna encaja bien,
+                 no apliques ninguna — no fuerces la clasificación.
                - No quites labels que ya tenga el issue; solo añade las que falten.
-            5. Publica el diagnóstico como comentario, SIEMPRE en español, con este formato
-               exacto (la primera línea es un marcador HTML oculto, imprescindible):
+               - Después de aplicar, vuelve a leer `gh issue view $ISSUE_NUMBER --json labels`
+                 para confirmar qué labels quedaron realmente en el issue. Usa esa lista
+                 confirmada (no lo que intentaste aplicar) en el paso 5.
+            5. Publica el diagnóstico como comentario, SIEMPRE en español, en Markdown legible
+               en GitHub (encabezados `###`, listas con `-`, rutas y símbolos en `código`), con
+               este formato exacto (la primera línea es un marcador HTML oculto, imprescindible):
 
                <!-- claude-triage -->
-               ## Triaje automático
+               ## 🔍 Triaje automático
 
-               **Resumen:** una o dos frases con lo que pide o reporta el issue.
+               ### Resumen
+               Una o dos frases con lo que pide o reporta el issue.
 
-               **Clasificación:** tipo de issue y labels aplicadas, con una frase de motivo.
+               ### Clasificación
+               - **Tipo:** bug / mejora / pregunta / documentación / duplicado / etc.
+               - **Labels aplicadas:** `label1`, `label2` (la lista confirmada del paso 4; si no
+                 se aplicó ninguna, escribe "Ninguna").
+               - **Motivo:** una frase justificando el tipo y las labels.
 
-               **Análisis:** archivos y funciones probablemente implicados (cítalos como
-               `game.js:123`), y la hipótesis de causa o del punto donde habría que tocar.
+               ### Análisis
+               - `archivo.js:123` — qué hay ahí y por qué es relevante.
+               - (una línea por archivo/función implicados; usa una lista, no un párrafo)
+
                Si el issue toca rotación, colisión, bucle de juego o canvas, respeta los
                invariantes de `CLAUDE.md` (índice de pieza = color = valor de celda, tamaños
                de canvas duplicados en HTML, rotación que no es SRS, sin lock delay).
 
-               **Falta información:** lo que haría falta para reproducir o decidir; escribe
-               "Nada pendiente" si el issue está completo.
+               ### Falta información
+               Lo que haría falta para reproducir o decidir; escribe "Nada pendiente" si el
+               issue está completo.
 
-               **Siguiente paso sugerido:** una acción concreta.
+               ### Siguiente paso sugerido
+               Una acción concreta.
 
+               ---
                _Generado automáticamente por Claude. Última actualización: <fecha UTC>._
 
             6. IMPORTANTE — actualiza en vez de duplicar. Antes de comentar, busca un
@@ -89,7 +108,9 @@ jobs:
                  `gh api -X PATCH repos/${{ github.repository }}/issues/comments/<id> -f body="$(cat cuerpo.md)"`
                - Si no hay ninguno, créalo:
                  `gh issue comment $ISSUE_NUMBER --body-file cuerpo.md`
-               Escribe el cuerpo en un archivo temporal (`cuerpo.md`) y pásalo con
-               `--body-file` / `-f body=...` para no romper el markdown con comillas.
+               Usa la herramienta Write para crear el archivo temporal `cuerpo.md` con el
+               cuerpo exacto del paso 5, y pásalo con `--body-file` / `-f body=...` para no
+               romper el markdown con comillas. No intentes crear el archivo con Bash: no
+               tienes permiso para comandos de shell genéricos, solo para `gh ...`.
 
             No comentes nada fuera de ese bloque, no cierres ni asignes el issue, y no abras PRs.
