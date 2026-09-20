@@ -45,26 +45,26 @@ jobs:
             Tetris en JavaScript vanilla (`index.html`, `game.js`, `style.css`). Lee `CLAUDE.md`
             antes de analizar: contiene la arquitectura y los invariantes del proyecto.
 
-            Debes triar el issue número $ISSUE_NUMBER. Sigue estos pasos EN ORDEN y ejecuta
+            Debes triar el issue número ${{ github.event.issue.number || inputs.issue_number }}. Sigue estos pasos EN ORDEN y ejecuta
             TODOS, incluido el paso 4 (labels) y el paso 6 (comentario) — no des el triaje por
             terminado hasta haber publicado el comentario.
 
             1. Lee el issue:
-               `gh issue view $ISSUE_NUMBER --json number,title,body,labels,author`
+               `gh issue view ${{ github.event.issue.number || inputs.issue_number }} --json number,title,body,labels,author`
             2. Lee las labels válidas: `gh label list --json name,description`
             3. Analiza el código relevante con Read/Grep/Glob (`game.js`, `index.html`,
                `style.css`, `README.md`) para fundamentar el diagnóstico. No modifiques
                ningún archivo del proyecto ni hagas commits (el único archivo que puedes
                escribir es el `cuerpo.md` temporal del paso 6).
             4. Aplica labels con
-               `gh issue edit $ISSUE_NUMBER --add-label "<label>"` (puedes pasar varias
+               `gh issue edit ${{ github.event.issue.number || inputs.issue_number }} --add-label "<label>"` (puedes pasar varias
                separadas por coma). Reglas estrictas:
                - Usa ÚNICAMENTE labels devueltas por `gh label list`, con el nombre EXACTO
                  (mayúsculas/minúsculas incluidas). Nunca crees labels nuevas.
                - Como máximo 3 labels, y solo si encajan con claridad. Si ninguna encaja bien,
                  no apliques ninguna — no fuerces la clasificación.
                - No quites labels que ya tenga el issue; solo añade las que falten.
-               - Después de aplicar, vuelve a leer `gh issue view $ISSUE_NUMBER --json labels`
+               - Después de aplicar, vuelve a leer `gh issue view ${{ github.event.issue.number || inputs.issue_number }} --json labels`
                  para confirmar qué labels quedaron realmente en el issue. Usa esa lista
                  confirmada (no lo que intentaste aplicar) en el paso 5.
             5. Publica el diagnóstico como comentario, SIEMPRE en español, en Markdown legible
@@ -103,11 +103,11 @@ jobs:
 
             6. IMPORTANTE — actualiza en vez de duplicar. Antes de comentar, busca un
                comentario previo de triaje:
-               `gh api repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments --paginate --jq '.[] | select(.body | contains("<!-- claude-triage -->")) | .id'`
+               `gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number || inputs.issue_number }}/comments --paginate --jq '.[] | select(.body | contains("<!-- claude-triage -->")) | .id'`
                - Si devuelve un id, edita ese comentario:
                  `gh api -X PATCH repos/${{ github.repository }}/issues/comments/<id> -f body="$(cat cuerpo.md)"`
                - Si no hay ninguno, créalo:
-                 `gh issue comment $ISSUE_NUMBER --body-file cuerpo.md`
+                 `gh issue comment ${{ github.event.issue.number || inputs.issue_number }} --body-file cuerpo.md`
                Usa la herramienta Write para crear el archivo temporal `cuerpo.md` con el
                cuerpo exacto del paso 5, y pásalo con `--body-file` / `-f body=...` para no
                romper el markdown con comillas. No intentes crear el archivo con Bash: no
