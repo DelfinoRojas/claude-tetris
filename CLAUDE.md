@@ -34,7 +34,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   piece, its matrix is filled with the literal `3`, `COLORS[3]` is its color, and `3` is what
   `merge()` writes into `board`. `0` means empty everywhere. Adding a piece means appending to
   *both* `PIECES` and `COLORS` at the same index, filling the new matrix with that index, and
-  widening the `Math.random() * 7` in `randomPiece()` (`game.js:50`).
+  widening the `Math.random() * 8` in `randomPiece()` (`game.js:50`). Index 8 is the nut
+  (`NUT`), the only piece with an interior `0`: once locked, that hole is unreachable, so its
+  row can't clear until the rows above it do. `lockPiece()` gives it a `NUT_BONUS * level`
+  score bonus.
 - **Canvas sizes are hardcoded in HTML and must match the JS constants.** `#board` is
   `width="300" height="600"` = `COLS*BLOCK` × `ROWS*BLOCK`; changing `COLS`, `ROWS` or `BLOCK`
   in `game.js` requires editing `index.html:12`. `#next-canvas` is 120×120, which assumes the
