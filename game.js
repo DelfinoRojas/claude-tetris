@@ -28,7 +28,88 @@ const PIECES = [
   [[8,8,8],[8,0,8],[8,8,8]],                  // Tuerca (hueco central)
 ];
 
-const LINE_SCORES = [0, 100, 300, 500, 800];
+// ---- Skins ----
+// Mismos 9 índices que PIECES (0 = vacío, 8 = tuerca); solo cambia la paleta y el estilo de dibujo.
+const SKINS = {
+  retro: {
+    colors: COLORS,
+    highlight: 'rgba(255,255,255,0.12)',
+    draw(context, px, py, s, color, hl) {
+      context.fillStyle = color;
+      context.fillRect(px + 1, py + 1, s - 2, s - 2);
+      context.fillStyle = hl;
+      context.fillRect(px + 1, py + 1, s - 2, Math.max(1, Math.round(s * 4 / 30)));
+    },
+  },
+  neon: {
+    colors: [null, '#00fff2', '#fff200', '#d400ff', '#39ff14', '#ff073a', '#2d7bff', '#ff8c00', '#c0c8d8'],
+    highlight: 'rgba(255,255,255,0.25)',
+    draw(context, px, py, s, color, hl) {
+      context.shadowColor = color;
+      context.shadowBlur = Math.max(2, s * 0.4);
+      context.fillStyle = color;
+      context.fillRect(px + 2, py + 2, s - 4, s - 4);
+      context.shadowBlur = 0;
+      context.shadowColor = 'rgba(0,0,0,0)';
+      context.fillStyle = hl;
+      context.fillRect(px + 2, py + 2, s - 4, Math.max(1, Math.round(s * 3 / 30)));
+    },
+  },
+  pastel: {
+    colors: [null, '#a8e6ef', '#fff1b8', '#d9b8f0', '#b8e6c1', '#f7b8b8', '#b8d4f7', '#ffd6a5', '#c9d3d8'],
+    highlight: 'rgba(255,255,255,0.35)',
+    draw(context, px, py, s, color, hl) {
+      context.fillStyle = color;
+      if (typeof context.roundRect === 'function') {
+        const r = s * 0.28;
+        context.beginPath();
+        context.roundRect(px + 1, py + 1, s - 2, s - 2, r);
+        context.fill();
+        context.fillStyle = hl;
+        context.beginPath();
+        context.roundRect(px + 3, py + 3, s - 6, Math.max(2, s * 0.15), r / 2);
+        context.fill();
+      } else {
+        context.fillRect(px + 1, py + 1, s - 2, s - 2);
+        context.fillStyle = hl;
+        context.fillRect(px + 1, py + 1, s - 2, Math.max(1, Math.round(s * 4 / 30)));
+      }
+    },
+  },
+  pixel: {
+    colors: [null, '#29b6c5', '#e8b923', '#9c4fb8', '#4caf50', '#d84545', '#3f7fd6', '#e8862a', '#78909c'],
+    highlight: 'rgba(255,255,255,0.28)',
+    draw(context, px, py, s, color, hl, cx, cy) {
+      context.fillStyle = color;
+      context.fillRect(px, py, s, s);
+      // Textura determinista: rejilla 6x6 de "píxeles" según hash de la celda (sin Math.random)
+      const n = 6;
+      const t = s / n;
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          // Solo depende de la posición dentro del bloque: no parpadea al moverse la pieza
+          const h = (Math.imul(Math.imul(i + 1, 73856093) ^ Math.imul(j + 1, 19349663), 2654435761) >>> 0) % 7;
+          if (h === 0) context.fillStyle = 'rgba(255,255,255,0.22)';
+          else if (h === 1) context.fillStyle = 'rgba(0,0,0,0.22)';
+          else continue;
+          context.fillRect(px + i * t, py + j * t, Math.ceil(t), Math.ceil(t));
+        }
+      }
+      // sombra abajo/derecha y brillo arriba/izquierda
+      const b = Math.max(1, Math.round(s / 15));
+      context.fillStyle = 'rgba(0,0,0,0.45)';
+      context.fillRect(px, py + s - b, s, b);
+      context.fillRect(px + s - b, py, b, s);
+      context.fillStyle = hl;
+      context.fillRect(px, py, s, b);
+      context.fillRect(px, py, b, s);
+    },
+  },
+};
+
+const SKIN_STORAGE_KEY = 'tetris-skin';
+
+const LINE_SCORES =[0, 100, 300, 500, 800];
 const NUT = 8;
 const NUT_BONUS = 50;
 
@@ -44,11 +125,13 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggleBtn = document.getElementById('theme-toggle-btn');
+const skinSelect = document.getElementById('skin-select');
 
 const THEME_STORAGE_KEY = 'tetris-theme';
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let gridLineColor = '#22222e';
+let activeSkin = SKINS.retro; // preferencia: no se resetea en init()
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -171,13 +254,9 @@ function updateHUD() {
 
 function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
-  const color = COLORS[colorIndex];
+  const skin = activeSkin;
   context.globalAlpha = alpha ?? 1;
-  context.fillStyle = color;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
-  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  skin.draw(context, x * size, y * size, size, skin.colors[colorIndex], skin.highlight, x, y);
   context.globalAlpha = 1;
 }
 
@@ -292,6 +371,7 @@ function init() {
 }
 
 document.addEventListener('keydown', e => {
+  if (e.target === skinSelect) return; // el select maneja sus propias teclas
   if (e.code === 'KeyP') { togglePause(); return; }
   if (paused || gameOver) return;
   switch (e.code) {
@@ -337,5 +417,32 @@ function toggleTheme() {
 
 themeToggleBtn.addEventListener('click', toggleTheme);
 applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || 'dark');
+
+function loadSkinName() {
+  try {
+    const name = localStorage.getItem(SKIN_STORAGE_KEY);
+    return Object.prototype.hasOwnProperty.call(SKINS, name) ? name : 'retro';
+  } catch (e) {
+    return 'retro';
+  }
+}
+
+function applySkin(name) {
+  if (!Object.prototype.hasOwnProperty.call(SKINS, name)) name = 'retro';
+  activeSkin = SKINS[name];
+  document.body.dataset.skin = name;
+  skinSelect.value = name;
+  updateGridColor();
+  // Redibujar explícitamente: en pausa/game over no hay rAF, y puede que init() aún no haya corrido.
+  if (board && current) draw();
+  if (next) drawNext();
+}
+
+skinSelect.addEventListener('change', () => {
+  try { localStorage.setItem(SKIN_STORAGE_KEY, skinSelect.value); } catch (e) { /* ignorar */ }
+  applySkin(skinSelect.value);
+  skinSelect.blur(); // que las flechas/Espacio sigan controlando el juego y no el select
+});
+applySkin(loadSkinName());
 
 init();

@@ -43,6 +43,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Sistema de puntuación** clásico de Tetris (100 / 300 / 500 / 800 multiplicado por nivel).
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
 - **Pausa** y **Game Over** con opción de reinicio.
+- **Skins visuales** (selector junto al botón de tema): Retro (colores planos), Neón (fondo negro y _glow_ con `shadowBlur`), Pastel (colores suaves y esquinas redondeadas) y Píxel (textura pixelada determinista sobre cada bloque). Cambian sin recargar y la elección se guarda en `localStorage` (`tetris-skin`). Los objetos `SKINS` de `game.js` definen paleta y función de dibujo; `drawBlock()` usa la skin activa. Neón siempre usa fondo oscuro, incluso en modo claro.
 
 ---
 
