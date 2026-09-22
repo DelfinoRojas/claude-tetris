@@ -21,6 +21,7 @@
   --overlay-bg: rgba(10, 10, 20, 0.75);
   --overlay-title: #e57373;
   --highlight-bg: rgba(122, 162, 247, 0.25);
+  --board-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
 }
 
 body.light {
@@ -40,6 +41,129 @@ body.light {
   --overlay-bg: rgba(255, 255, 255, 0.75);
   --overlay-title: #c62828;
   --highlight-bg: rgba(59, 91, 219, 0.2);
+  --board-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Skins: van después de body.light para que ganen sobre el tema ---- */
+
+/* Neón: siempre oscuro (el glow no se ve sobre fondo claro), también en modo claro */
+body[data-skin="neon"] {
+  --bg-body: #000000;
+  --text-body: #e6faff;
+  --accent: #00fff2;
+  --accent-hover: #7dfff8;
+  --restart-text: #000000;
+  --board-border: #00fff2;
+  --board-bg: #000000;
+  --grid-line: #12222a;
+  --label-color: #4fb7c4;
+  --kbd-bg: #05141a;
+  --kbd-border: #0f6f78;
+  --kbd-text: #7dfff8;
+  --controls-text: #7fb8c0;
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+  --overlay-title: #ff073a;
+  --board-shadow: 0 0 24px rgba(0, 255, 242, 0.45);
+}
+
+/* Pastel: oscuro suave (modo oscuro) y crema (modo claro) */
+body[data-skin="pastel"] {
+  --bg-body: #2b2438;
+  --text-body: #f3ecff;
+  --accent: #f7a8d0;
+  --accent-hover: #ffc4e2;
+  --restart-text: #2b2438;
+  --board-border: #5a4b78;
+  --board-bg: #382f4a;
+  --grid-line: #453a5c;
+  --label-color: #b7a6d6;
+  --kbd-bg: #453a5c;
+  --kbd-border: #6a5a8a;
+  --kbd-text: #e0d4f5;
+  --controls-text: #c3b5df;
+  --overlay-bg: rgba(43, 36, 56, 0.75);
+  --overlay-title: #f79bb0;
+  --board-shadow: 0 6px 30px rgba(247, 168, 208, 0.25);
+}
+
+body.light[data-skin="pastel"] {
+  --bg-body: #fdf3f8;
+  --text-body: #4a3b5c;
+  --accent: #d0679f;
+  --accent-hover: #e07fb4;
+  --restart-text: #ffffff;
+  --board-border: #e6d3ee;
+  --board-bg: #fffafc;
+  --grid-line: #f1e4f2;
+  --label-color: #9a86b0;
+  --kbd-bg: #f3e6f6;
+  --kbd-border: #e0cbe8;
+  --kbd-text: #6a5a7c;
+  --controls-text: #7a6a8c;
+  --overlay-bg: rgba(253, 243, 248, 0.75);
+  --overlay-title: #d0517a;
+  --board-shadow: 0 6px 30px rgba(208, 103, 159, 0.2);
+}
+
+/* Píxel: verde-marrón oscuro (modo oscuro) y papel (modo claro) */
+body[data-skin="pixel"] {
+  --bg-body: #1b1f14;
+  --text-body: #e8e8d0;
+  --accent: #8bd450;
+  --accent-hover: #a8e874;
+  --restart-text: #1b1f14;
+  --board-border: #4a5236;
+  --board-bg: #10130c;
+  --grid-line: #232a19;
+  --label-color: #7d8a5a;
+  --kbd-bg: #2a3120;
+  --kbd-border: #4a5236;
+  --kbd-text: #c8d0a8;
+  --controls-text: #9aa57a;
+  --overlay-bg: rgba(16, 19, 12, 0.8);
+  --overlay-title: #e8563a;
+  --board-shadow: 0 0 0 3px #4a5236;
+}
+
+body.light[data-skin="pixel"] {
+  --bg-body: #e8e2c8;
+  --text-body: #2a2a1c;
+  --accent: #3f7a1c;
+  --accent-hover: #55962f;
+  --restart-text: #ffffff;
+  --board-border: #8a8560;
+  --board-bg: #f5f0d8;
+  --grid-line: #d8d2b0;
+  --label-color: #6a6a48;
+  --kbd-bg: #d8d2b0;
+  --kbd-border: #8a8560;
+  --kbd-text: #3a3a28;
+  --controls-text: #55553a;
+  --overlay-bg: rgba(232, 226, 200, 0.8);
+  --overlay-title: #b3261e;
+  --board-shadow: 0 0 0 3px #8a8560;
+}
+
+body[data-skin="pixel"] #board,
+body[data-skin="pixel"] #next-canvas {
+  image-rendering: pixelated;
+  border-radius: 0;
+}
+
+.skin-select {
+  background: var(--kbd-bg);
+  color: var(--text-body);
+  border: 1px solid var(--kbd-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.skin-select:hover {
+  border-color: var(--accent);
 }
 
 body {
@@ -109,7 +233,7 @@ body {
   border: 1px solid var(--board-border);
   background: var(--board-bg);
   border-radius: 4px;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--board-shadow);
 }
 
 /* ---- Panel lateral ---- */

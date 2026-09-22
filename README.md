@@ -46,6 +46,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Game Over** con opción de reinicio.
 - **Pantalla de inicio** con el top-5 de records, mejor combo y líneas máximas; el botón **JUGAR** arranca la partida.
 - **Tabla de records local** (top 5) guardada en `localStorage` (`tetris-highscores`, `tetris-best-combo`, `tetris-best-lines`). Si tu puntuación entra en el top 5 aparece «¡NUEVO RECORD!» con un campo de nombre (máx. 8 caracteres) y la entrada se resalta en la tabla. El **combo** sube con cada pieza que limpia líneas y se reinicia cuando una pieza se fija sin limpiar. El botón **Borrar records** (con confirmación) limpia todo.
+- **Skins visuales** (selector junto al botón de tema): Retro (colores planos), Neón (fondo negro y _glow_ con `shadowBlur`), Pastel (colores suaves y esquinas redondeadas) y Píxel (textura pixelada determinista sobre cada bloque). Cambian sin recargar y la elección se guarda en `localStorage` (`tetris-skin`). Los objetos `SKINS` de `game.js` definen paleta y función de dibujo; `drawBlock()` usa la skin activa. Neón siempre usa fondo oscuro, incluso en modo claro.
 
 ---
 
